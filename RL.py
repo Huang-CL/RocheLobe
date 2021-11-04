@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 from scipy import io as spio
 from scipy import optimize
 from numpy import vectorize, interp
@@ -68,9 +69,25 @@ def funcargs(r, *args):
 def minPy(q,Lx):
   return optimize.fmin(funcargs,Lx,args=(q,),disp=0)
 
+def y2z(theta, rin, q, a, rmax):
+  # convert a point on the y axis to the equal potential point at the y-z plane.
+  if (rin>rmax):
+    P0 = pot3D(rmax, np.pi/2, np.pi/2, q, a)
+  else:
+    P0 = pot3D(rin, np.pi/2, np.pi/2, q, a)
+
+  req = optimize.root_scalar(equiP, args=(theta,np.pi/2,q,a,P0), bracket=[rmax/1E10, rmax], method='brentq').root
+  
+  if(rin>rmax):
+    return req/rmax*rin;
+  else:
+    return req;
+
 vminPy = np.vectorize(minPy)
 
 L4 = np.fabs(vminPy(qlist,Lx))
+vy2z = np.vectorize(y2z, excluded=['theta', 'a'])
+L4z = vy2z(0, L4, qlist, 1, L4)
 
 q_mesh = 1E-4
 boxsize = 5*np.interp(q_mesh,qlist,Lx)
@@ -78,7 +95,7 @@ x = np.linspace(-boxsize,boxsize,100)
 y = np.linspace(0,2*boxsize,100)
 X,Y = np.meshgrid(x,y)
 r_mesh = np.sqrt(X**2+Y**2)
-phi_mesh = np.arccos(X/r_mesh)
+phi_mesh = np.arctan2(Y,X)
 
 vpot3D = np.vectorize(pot3D, excluded=['theta','q','a'])
 Z = vpot3D(r_mesh,np.pi/2.,phi_mesh,q_mesh,1)
@@ -99,6 +116,7 @@ plt.figure()
 plt.plot(qlist, Ly/Lx, 'k-', label='y/x')
 plt.plot(qlist, Lz/Lx, 'b-', label='z/x')
 plt.plot(qlist, Lx/L4, 'r-', label='Lx/L4')
+plt.plot(qlist, L4z/L4, 'm-', label='L4z/L4')
 plt.xscale('log')
 plt.xlabel('M2/M1',fontsize=16)
 plt.ylabel('Ratio',fontsize=16)
@@ -112,7 +130,6 @@ plt.ylabel('distance to minimum P in y direction',fontsize=16)
 
 plt.figure()
 plt.contourf(X,Y,np.log(Z.max()-Z+1E-5))
-
 # plt.figure()
 # plt.plot(ry,poty)
 
