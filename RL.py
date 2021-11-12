@@ -89,6 +89,16 @@ L4 = np.fabs(vminPy(qlist,Lx))
 vy2z = np.vectorize(y2z, excluded=['theta', 'a'])
 L4z = vy2z(0, L4, qlist, 1, L4)
 
+q_med = 8.865E-4
+Rpy_med = 0.03528
+vy2z_angle = np.vectorize(y2z, excluded=['rin', 'q', 'a', 'rmax']) # Given rin, q, a, plot the equal potential surfice in the y-z plane
+angle = np.linspace(0,np.pi/2)
+L4_121 = np.interp(q_med,qlist,L4)
+radius_pot = vy2z_angle(angle, Rpy_med, q_med, 1, L4_121)
+b_121 = y2z(0, Rpy_med, q_med, 1, L4_121)
+radius_elliptical = Rpy_med*b_121/np.sqrt((b_121*np.sin(angle))**2 + (Rpy_med*np.cos(angle))**2)
+
+
 q_mesh = 1E-4
 boxsize = 5*np.interp(q_mesh,qlist,Lx)
 x = np.linspace(-boxsize,boxsize,100)
@@ -134,4 +144,19 @@ plt.contourf(X,Y,np.log(Z.max()-Z+1E-5))
 # plt.plot(ry,poty)
 
 #print(optimize.fmin(funcargs,np.interp(q_mesh,qlist,Lx),args=(q_mesh,),disp=1,full_output=1))
+
+#print(L4_121, b_121, b_121*1.495978707E13*0.02495/7.1492E9, np.sqrt(b_121*Rpy_med)*1.495978707E13*0.02495/7.1492E9)
+
+
+# Plot the equal potential radius at y-z plane and compare its shape to ellipse
+fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True, gridspec_kw={'height_ratios': [3, 1], 'hspace' : 0})
+ax1.plot(angle,radius_pot,'b-',label='equal potential')
+ax1.plot(angle,radius_elliptical, 'k-', label='ellipse')
+ax2.plot(angle,radius_pot/radius_elliptical, 'k-')
+ax1.legend(loc=0, frameon = False)
+ax1.set_ylabel('r',fontsize=16)
+ax2.set_ylabel('potential/ellipse',fontsize=16)
+ax2.set_xlabel(r'$\theta$',fontsize=16)
+plt.tight_layout()
+
 plt.show()
