@@ -100,16 +100,24 @@ radius_elliptical = Rpy_med*b_121/np.sqrt((b_121*np.sin(angle))**2 + (Rpy_med*np
 
 
 q_mesh = 1E-4
-boxsize = 5*np.interp(q_mesh,qlist,Lx)
-x = np.linspace(-boxsize,boxsize,100)
-y = np.linspace(0,2*boxsize,100)
+boxsize = 3*np.interp(q_mesh,qlist,Lx)
+x = np.linspace(-boxsize,boxsize,200)
+y = np.linspace(0,2*boxsize,200)
+z = np.linspace(0,0.5*boxsize,200)
 X,Y = np.meshgrid(x,y)
 r_mesh = np.sqrt(X**2+Y**2)
 phi_mesh = np.arctan2(Y,X)
 
-vpot3D = np.vectorize(pot3D, excluded=['theta','q','a'])
-Z = vpot3D(r_mesh,np.pi/2.,phi_mesh,q_mesh,1)
-#levels = MaxNLocator(nbins=15).tick_values(Z.min(), Z.max())
+X2,Z2 = np.meshgrid(x,z)
+r2_mesh = np.sqrt(X2**2+Z2**2)
+phi2_mesh = np.arctan2(0,X2)
+th2_mesh = np.arctan2(X2,Z2)
+
+vpot3Dxy = np.vectorize(pot3D, excluded=['theta','q','a'])
+potxy = vpot3Dxy(r_mesh,np.pi/2.,phi_mesh,q_mesh,1)
+vpot3Dxz = np.vectorize(pot3D, excluded=['q','a'])
+potxz = vpot3Dxz(r2_mesh,th2_mesh,phi2_mesh,q_mesh,1)
+#levels = MaxNLocator(nbins=15).tick_values(potxy.min(), potxy.max())
 
 # ry = np.linspace(q_mesh,2*boxsize,100)
 # poty = vpot3D(ry,np.pi/2., np.pi/2., q_mesh,1)
@@ -138,8 +146,19 @@ plt.xscale('log')
 plt.xlabel('M2/M1',fontsize=16)
 plt.ylabel('distance to minimum P in y direction',fontsize=16)
 
-plt.figure()
-plt.contourf(X,Y,np.log(Z.max()-Z+1E-5))
+my_dpi=96
+plt.figure(figsize=(800/my_dpi, 800/my_dpi), dpi=my_dpi)
+plt.contourf(X,Y,np.log(potxy.max()-potxy+1E-5),20)
+plt.xlabel('x/a',fontsize=16)
+plt.ylabel('y/a',fontsize=16)
+plt.tight_layout()
+
+plt.figure(figsize=(1600/my_dpi, 500/my_dpi), dpi=my_dpi)
+plt.contourf(X2,Z2,np.log(potxz.max()-potxz+1E-5),20)
+plt.xlabel('x/a',fontsize=16)
+plt.ylabel('z/a',fontsize=16)
+plt.tight_layout()
+
 # plt.figure()
 # plt.plot(ry,poty)
 
