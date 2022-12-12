@@ -14,7 +14,8 @@ mpl.rcParams["savefig.directory"] = ""
 plt.rc('xtick',labelsize=14)
 plt.rc('ytick',labelsize=14)
 
-G = 6.6743e-8                     # in cgs
+G = 6.6743e-8                     # in cgs CODATA 2018
+#G = 6.67384e-8                     # in cgs CODATA 2010
 Msun = 1.98840987E33
 RJ = 7.1492E9
 Rsun=6.957E10
@@ -28,13 +29,49 @@ AU = 1.495978707E13
 # Mpl = 1.138*MJ	
 # Per = 191685
 
-# WASP 121b original
-Rpt = 1.865*RJ
-Rstar = 1.458*Rsun  # Delrez et al. 2016, self-consistent with planet parameters, 1.59 * 6.96*10^10 cm from GAIA DR2
-Mstar = 1.353*Msun
-Mpl = 1.183*MJ
-Per = 110153
-Rtop = 246688720000                 # radius of the top grid in the hydrodynamic outflow.
+# # WASP 121b original
+# Rpt = 1.865*RJ
+# Rstar = 1.458*Rsun  # Delrez et al. 2016, self-consistent with planet parameters, 1.59 * 6.96*10^10 cm from GAIA DR2
+# Mstar = 1.353*Msun
+# Mpl = 1.183*MJ
+# Per = 110153
+# Rtop = 246688720000                 # radius of the top grid in the hydrodynamic outflow.
+
+# # WASP 121b Delrez actual using IAU RJ values
+# Rpt = 1.766*RJ
+# Rstar = 1.4572*Rsun  
+# Mstar = 1.3521*Msun
+# Mpl = 1.1824*MJ
+# Per = 110153.56
+
+
+# # WASP-52b
+# Rstar = 0.79*Rsun
+# Mstar = 0.87*Msun
+# Rpt = 1.27*RJ
+# Mpl = 0.46*MJ	
+# Per = 155181
+
+#WASP-12b Collins et al. 2017
+Rstar = 1.657*Rsun;	
+Mstar = 1.434*Msun;
+Mpl = 1.47*MJ;	
+Rpt = 1.90*RJ;
+Per = 94299
+
+# #WASP-12b Budaj 2011
+# Rstar = 1.57*Rsun;	
+# Mstar = 1.35*Msun;
+# Mpl = 1.41*MJ;	
+# Rpt = 1.7681*RJ;
+# Per = 94299
+
+# #WASP-33b Budaj 2011
+# Rstar = 1.444*Rsun;	
+# Mstar = 1.495*Msun;
+# Mpl = 1.11*MJ;	
+# Rpt = 1.5469*RJ;
+# Per = 105397
 
 a_ex = np.cbrt(G*(Mstar+Mpl)*(Per/(2*np.pi))**2)
 # M1 = 1, M2 = q
@@ -113,9 +150,12 @@ def y2z(theta, rin, q, a, rmax):
   else:
     return req;
 
+def Eggleton(q,a):
+  return a*0.49*q**(2./3.)/(0.6*q**(2./3.)+np.log(1+q**(1./3.)))
+  
 Lx,Ly,Lz = getL(Mpl/Mstar,a_ex)
-print (Lx, Lx/Rpt, Lx/Rstar, Ly/Rstar, Lz/Rstar, a_ex, a_ex/AU)
-print (G*Mstar*(pot3D(Lx, np.pi/2, np.pi, Mpl/Mstar, a_ex)-pot3D(1.93E+10,  np.pi/2, np.pi, Mpl/Mstar, a_ex)))
+
+#print (G*Mstar*(pot3D(Lx, np.pi/2, np.pi, Mpl/Mstar, a_ex)-pot3D(1.93E+10,  np.pi/2, np.pi, Mpl/Mstar, a_ex)))
 
 # vgetL = np.vectorize(getL)
 # qlist = np.logspace(-5,0,50)
@@ -225,15 +265,15 @@ Ry = getequir(np.pi/2, np.pi/2, Rz, 0, np.pi, Lx, Mpl/Mstar, a_ex)
 Rx = getequir(np.pi/2, np.pi, Rz, 0, np.pi, Lx, Mpl/Mstar, a_ex)
 yMax = minPy(Mpl/Mstar, Lx/a_ex)[0]
 #print(yMax*a_ex/Rpt, Rstar/Rpt)
-angle = np.linspace(0,2*np.pi, 101)
+angle = np.linspace(0,2*np.pi, 129)
 RL = [getequir(np.pi/2, i, Lx, np.pi/2, np.pi, Lx, Mpl/Mstar, a_ex) for i in angle]
 Rplist = [getequir(np.pi/2, i, Ry, np.pi/2, np.pi/2, Lx, Mpl/Mstar, a_ex) for i in angle]
 Rpyz = [getequir(i, np.pi/2, Ry, np.pi/2, np.pi/2, Lx, Mpl/Mstar, a_ex) for i in angle]
 RhLyz = [getequiryz(i, yMax*a_ex/2, np.pi/2, yMax*a_ex, Mpl/Mstar, a_ex) for i in angle]
 RLyz = [getequiryz(i, yMax*a_ex, np.pi/2, yMax*a_ex, Mpl/Mstar, a_ex) for i in angle]
 RRLyz= [getequiryz(i, Ly, np.pi/2, yMax*a_ex, Mpl/Mstar, a_ex) for i in angle]
-Rstaryz = np.array(RLyz)*(Rstar/RLyz[0])
-Rtopyz = np.array(RLyz)*(Rtop*Ly/Lx/RLyz[25])
+#Rstaryz = np.array(RLyz)*(Rstar/RLyz[0])
+#Rtopyz = np.array(RLyz)*(Rtop*Ly/Lx/RLyz[25])
 
 plt.figure()
 plt.subplot(111, projection='polar')
@@ -242,9 +282,9 @@ plt.plot(angle, Rplist)
 plt.fill_between(angle, 0, Rplist, alpha=0.2)
 plt.plot((0, np.pi/2), (0, Ry))
 plt.plot((0, np.pi), (0, Rx))
-plt.text(np.pi, Lx*1.1, "L1")
-plt.text(np.pi/2, Ry*1.05, "$R_y$")
-plt.text(np.pi, Rx*1.2, "$R_x$")
+plt.text(np.pi, Lx*0.85, "L1",fontsize=24)
+plt.text(np.pi/2*0.9, Ry*0.5, "$R_{py}$",fontsize=24)
+plt.text(np.pi*1.15, Rx*0.6, "$R_{px}$",fontsize=24)
 plt.gca().set_rmin(0)
 plt.gca().set_rmax(Lx)
 plt.grid(False)
@@ -258,14 +298,14 @@ plt.plot(angle+np.pi/2, RRLyz,'b')
 plt.plot(angle+np.pi/2, RhLyz,'m')
 plt.plot(angle+np.pi/2, RLyz,'r')
 # plt.plot(angle+np.pi/2, Rtopyz,'m')
-# plt.plot(angle+np.pi/2, Rstaryz,'r')
-plt.plot(angle,np.ones(101)*Rstar, 'y')
+#plt.plot(angle+np.pi/2, Rstaryz,'r')
+plt.plot(angle,np.ones(129)*Rstar, 'y')
 plt.fill_between(angle+np.pi/2, 0, Rpyz, color='k',alpha=0.8)
 plt.plot((0, np.pi/2), (0, Rz),color='w')
 plt.plot((0, np.pi), (0, Ry),color='w')
 #plt.text(np.pi, Lx*1.1, "L1")
-plt.text(np.pi/2, Ry*1.1, "$R_z$")
-plt.text(np.pi, Ry*2, "$R_y$")
+plt.text(np.pi/2, Ry*1.1, "$R_{pz}$",fontsize=30)
+plt.text(np.pi, Ry*2.7, "$R_{py}$",fontsize=30)
 plt.gca().set_rmin(0)
 #plt.gca().set_rmax(Rstaryz[25]*1.05)
 plt.gca().set_rmax(Rstar*1.02)
@@ -274,6 +314,8 @@ plt.axis('off')
 #plt.subplots_adjust(left=0, bottom=-0.6, right=1, top=1.6, wspace=0, hspace=0)
 plt.subplots_adjust(left=0, bottom=-0.3, right=1, top=1.3, wspace=0, hspace=0)
 
-print (Rstaryz[25]/Rx, Rstaryz[25]/Ly*Lx)
+RLE = Eggleton(Mpl/Mstar,a_ex)
+print(Rx/RJ, Ry/RJ, Rz/RJ, Rx/Rz, a_ex/AU, 2*np.pi*np.sqrt((0.02544*AU)**3/G/(Mpl+Mstar)), 2*np.pi*Ry/Per)
+print (angle[16]/np.pi*180,Lx/RJ, Ly/RJ, Lz/RJ, Lx/Rpt, Ly/Rstar, RLE/RJ, RRLyz[16]/RJ, RRLyz[16]/Ly, RRLyz[16]/Rstar, RRLyz[16]/Rx, RRLyz[16]/np.sqrt(Ly*Lz))
 
 plt.show()
